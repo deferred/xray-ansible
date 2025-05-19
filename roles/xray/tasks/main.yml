@@ -1,0 +1,123 @@
+---
+- name: Get latest Xray release
+  uri:
+    url: https://api.github.com/repos/XTLS/Xray-core/releases/latest
+    return_content: yes
+    headers:
+      Accept: application/vnd.github.v3+json
+  register: latest_release
+
+- name: Set Xray version
+  set_fact:
+    xray_version: "{{ latest_release.json.tag_name }}"
+    xray_asset: "Xray-linux-64.zip"
+
+- name: Create Xray directory
+  file:
+    path: /opt/xray
+    state: directory
+    mode: '0777'
+    owner: root
+    group: root
+
+- name: Download Xray
+  get_url:
+    url: "https://github.com/XTLS/Xray-core/releases/download/{{ xray_version }}/{{ xray_asset }}"
+    dest: /tmp/{{ xray_asset }}
+    mode: '0666'
+
+- name: Install unzip
+  apt:
+    name: unzip
+    state: present
+
+- name: Extract Xray
+  unarchive:
+    src: /tmp/{{ xray_asset }}
+    dest: /opt/xray
+    remote_src: yes
+    owner: root
+    group: root
+    mode: '0777'
+
+- name: Make Xray executable
+  file:
+    path: /opt/xray/xray
+    mode: '0777'
+    owner: root
+    group: root
+
+- name: Check if private key exists
+  stat:
+    path: /opt/xray/private.key
+  register: private_key_exists
+
+- name: Check if public key exists
+  stat:
+    path: /opt/xray/public.key
+  register: public_key_exists
+
+- name: Generate X25519 keys
+  shell: /opt/xray/xray x25519
+  register: x25519_keys
+  changed_when: false
+  when: not (private_key_exists.stat.exists and public_key_exists.stat.exists)
+
+- name: Save private key
+  copy:
+    content: "{{ x25519_keys.stdout_lines[0] | regex_replace('^Private key: ', '') }}"
+    dest: /opt/xray/private.key
+    mode: '0666'
+    owner: root
+    group: root
+  when: not (private_key_exists.stat.exists and public_key_exists.stat.exists)
+
+- name: Save public key
+  copy:
+    content: "{{ x25519_keys.stdout_lines[1] | regex_replace('^Public key: ', '') }}"
+    dest: /opt/xray/public.key
+    mode: '0666'
+    owner: root
+    group: root
+  when: not (private_key_exists.stat.exists and public_key_exists.stat.exists)
+
+- name: Read private key content
+  slurp:
+    src: /opt/xray/private.key
+  register: private_key_content
+
+- name: Set private key content
+  set_fact:
+    xray_private_key: "{{ private_key_content.content | b64decode | trim }}"
+
+- name: Remove zip file
+  file:
+    path: /tmp/{{ xray_asset }}
+    state: absent
+
+- name: Install systemd service
+  copy:
+    content: |
+      [Unit]
+      Description=XRay
+      [Service]
+      Type=simple
+      Restart=on-failure
+      RestartSec=30
+      WorkingDirectory=/opt/xray
+      ExecStart=/opt/xray/xray run -c /opt/xray/config.json
+      [Install]
+      WantedBy=multi-user.target
+    dest: /etc/systemd/system/xray.service
+    mode: '0666'
+  notify: reload systemd
+
+- name: Create Xray config from template
+  template:
+    src: config.json.j2
+    dest: /opt/xray/config.json
+    mode: '0666'
+    owner: root
+    group: root
+    force: yes
+  notify: restart xray

@@ -1,0 +1,3 @@
+---
+# Xray configuration defaults
+xray_log_level: info

@@ -7,3 +7,4 @@
     - system-update
     - nginx
     - acme
+    - xray
