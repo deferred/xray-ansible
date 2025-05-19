@@ -9,6 +9,12 @@
     name: nginx
     state: present
 
+- name: Remove default site symlink
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: restart nginx
+
 - name: Create website directory
   file:
     path: "{{ nginx_website_root }}"
@@ -26,12 +32,6 @@
     src: files/kitten.jpg
     dest: "{{ nginx_website_root }}/kitten.jpg"
     mode: '0644'
-
-- name: Remove default site symlink
-  file:
-    path: /etc/nginx/sites-enabled/default
-    state: absent
-  notify: restart nginx
 
 - name: Configure site
   template:
