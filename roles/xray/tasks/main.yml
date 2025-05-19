@@ -16,7 +16,7 @@
   file:
     path: /opt/xray
     state: directory
-    mode: '0777'
+    mode: '0700'
     owner: root
     group: root
 
@@ -24,7 +24,7 @@
   get_url:
     url: "https://github.com/XTLS/Xray-core/releases/download/{{ xray_version }}/{{ xray_asset }}"
     dest: /tmp/{{ xray_asset }}
-    mode: '0666'
+    mode: '0600'
 
 - name: Install unzip
   apt:
@@ -38,12 +38,12 @@
     remote_src: yes
     owner: root
     group: root
-    mode: '0777'
+    mode: '0700'
 
 - name: Make Xray executable
   file:
     path: /opt/xray/xray
-    mode: '0777'
+    mode: '0700'
     owner: root
     group: root
 
@@ -67,7 +67,7 @@
   copy:
     content: "{{ x25519_keys.stdout_lines[0] | regex_replace('^Private key: ', '') }}"
     dest: /opt/xray/private.key
-    mode: '0666'
+    mode: '0600'
     owner: root
     group: root
   when: not (private_key_exists.stat.exists and public_key_exists.stat.exists)
@@ -76,7 +76,7 @@
   copy:
     content: "{{ x25519_keys.stdout_lines[1] | regex_replace('^Public key: ', '') }}"
     dest: /opt/xray/public.key
-    mode: '0666'
+    mode: '0600'
     owner: root
     group: root
   when: not (private_key_exists.stat.exists and public_key_exists.stat.exists)
@@ -109,14 +109,14 @@
       [Install]
       WantedBy=multi-user.target
     dest: /etc/systemd/system/xray.service
-    mode: '0666'
+    mode: '0644'
   notify: reload systemd
 
 - name: Create Xray config from template
   template:
     src: config.json.j2
     dest: /opt/xray/config.json
-    mode: '0666'
+    mode: '0600'
     owner: root
     group: root
     force: yes
