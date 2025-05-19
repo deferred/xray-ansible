@@ -1,6 +1,0 @@
----
-# ACME.sh configuration
-acme_install_dir: "/root/.acme.sh"
-acme_cert_dir: "{{ acme_install_dir }}/{{ domain }}_ecc"
-acme_cert_path: "{{ acme_cert_dir }}/fullchain.cer"
-acme_key_path: "{{ acme_cert_dir }}/{{ domain }}.key"
