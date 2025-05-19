@@ -1,0 +1,6 @@
+---
+all:
+  children:
+    vpn:
+      hosts:
+        your-server-name:
