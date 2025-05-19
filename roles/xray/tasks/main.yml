@@ -1,4 +1,14 @@
 ---
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install required packages
+  apt:
+    name: unzip
+    state: present
+
 - name: Get latest Xray release
   uri:
     url: https://api.github.com/repos/XTLS/Xray-core/releases/latest
@@ -25,11 +35,6 @@
     url: "https://github.com/XTLS/Xray-core/releases/download/{{ xray_version }}/{{ xray_asset }}"
     dest: /tmp/{{ xray_asset }}
     mode: '0600'
-
-- name: Install unzip
-  apt:
-    name: unzip
-    state: present
 
 - name: Extract Xray
   unarchive:
