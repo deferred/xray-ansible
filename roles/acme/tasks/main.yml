@@ -1,0 +1,38 @@
+---
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install required packages
+  apt:
+    name: curl
+    state: present
+
+- name: Install acme.sh
+  shell: curl https://get.acme.sh | sh -s -- --home {{ acme_install_dir }}
+  args:
+    creates: "{{ acme_install_dir }}/acme.sh"
+
+- name: Enable acme.sh auto-upgrade
+  shell: "{{ acme_install_dir }}/acme.sh --upgrade --auto-upgrade"
+
+- name: Set Let's Encrypt as default CA
+  shell: "{{ acme_install_dir }}/acme.sh --set-default-ca --server letsencrypt"
+
+- name: Issue certificate
+  shell: "{{ acme_install_dir }}/acme.sh --issue -d {{ domain }} -w {{ nginx_website_root }} --keylength ec-256"
+  args:
+    creates: "{{ acme_cert_path }}"
+
+- name: Install certificate with auto-renewal
+  shell: "{{ acme_install_dir }}/acme.sh --install-cert -d {{ domain }} --ecc --auto-upgrade --cert-file {{ acme_cert_path }} --key-file {{ acme_key_path }} --reloadcmd 'systemctl reload nginx'"
+  notify: reload nginx
+
+- name: Add renewal cron job
+  cron:
+    name: "Renew Let's Encrypt certificate for {{ domain }}"
+    job: "{{ acme_install_dir }}/acme.sh --cron"
+    hour: "0"
+    minute: "0"
+    state: present
