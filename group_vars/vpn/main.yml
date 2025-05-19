@@ -1,0 +1,2 @@
+---
+nginx_website_root: /var/www/{{ domain }}
