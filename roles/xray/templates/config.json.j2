@@ -39,6 +39,24 @@
           "quic"
         ]
       }
+    },
+    {
+      "port": {{ shadowsocks.port }},
+      "tag": "ss-in",
+      "protocol": "shadowsocks",
+      "settings": {
+        "method": "2022-blake3-aes-128-gcm",
+        "password": "{{ shadowsocks.password }}",
+        "network": "tcp,udp"
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": [
+          "http",
+          "tls",
+          "quic"
+        ]
+      }
     }
   ],
   "outbounds": [
