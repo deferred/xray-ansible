@@ -85,15 +85,18 @@
       },
       {
         "type": "field",
-        "ip": [
-          "geoip:ru"
+        "domain": [
+          "geosite:category-ru",
+          "domain:by",
+          "domain:xn--90ais"
         ],
         "outboundTag": "block"
       },
       {
         "type": "field",
-        "domain": [
-          "geosite:category-ru"
+        "ip": [
+          "geoip:ru",
+          "geoip:by"
         ],
         "outboundTag": "block"
       }
