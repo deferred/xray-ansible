@@ -4,6 +4,7 @@
   vars_files:
     - secrets.yml
   roles:
+    - unattended-upgrades
     - system-update
     - nginx
     - acme

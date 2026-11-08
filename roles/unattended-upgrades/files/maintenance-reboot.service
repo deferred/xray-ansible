@@ -1,0 +1,8 @@
+[Unit]
+Description=Reboot after updates during the maintenance window
+ConditionPathExists=/run/reboot-required
+After=apt-daily.service apt-daily-upgrade.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/systemctl --no-block reboot

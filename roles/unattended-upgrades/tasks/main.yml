@@ -1,0 +1,49 @@
+---
+- name: Install unattended upgrades
+  apt:
+    name: unattended-upgrades
+    state: present
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Configure daily security updates
+  copy:
+    src: 99unattended-upgrades-local
+    dest: /etc/apt/apt.conf.d/99unattended-upgrades-local
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Install maintenance reboot service
+  copy:
+    src: maintenance-reboot.service
+    dest: /etc/systemd/system/maintenance-reboot.service
+    owner: root
+    group: root
+    mode: '0644'
+  register: maintenance_reboot_service
+
+- name: Configure maintenance reboot timer
+  template:
+    src: maintenance-reboot.timer.j2
+    dest: /etc/systemd/system/maintenance-reboot.timer
+    owner: root
+    group: root
+    mode: '0644'
+  register: maintenance_reboot_timer
+
+- name: Enable maintenance reboot timer
+  systemd:
+    name: maintenance-reboot.timer
+    enabled: yes
+    daemon_reload: "{{ maintenance_reboot_service.changed or maintenance_reboot_timer.changed }}"
+    state: "{{ 'restarted' if maintenance_reboot_timer.changed else 'started' }}"
+
+- name: Enable daily APT timers
+  systemd:
+    name: "{{ item }}"
+    enabled: yes
+    state: started
+  loop:
+    - apt-daily.timer
+    - apt-daily-upgrade.timer

@@ -1,0 +1,11 @@
+[Unit]
+Description=Check for required reboots during the maintenance window
+
+[Timer]
+OnCalendar={{ unattended_upgrades_reboot_calendar }}
+AccuracySec=1min
+RandomizedDelaySec=0
+Persistent=false
+
+[Install]
+WantedBy=timers.target
