@@ -35,6 +35,11 @@
     url: "https://github.com/XTLS/Xray-core/releases/download/{{ xray_version }}/{{ xray_asset }}"
     dest: /tmp/{{ xray_asset }}
     mode: '0600'
+    timeout: 120
+  register: xray_download
+  until: xray_download is succeeded
+  retries: 3
+  delay: 10
 
 - name: Extract Xray
   unarchive:
