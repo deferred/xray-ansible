@@ -6,7 +6,7 @@
     update_cache: yes
     cache_valid_time: 3600
 
-- name: Configure daily security updates
+- name: Configure daily package updates
   copy:
     src: 99unattended-upgrades-local
     dest: /etc/apt/apt.conf.d/99unattended-upgrades-local
