@@ -59,6 +59,21 @@
     owner: root
     group: root
 
+- name: Download full GeoIP database
+  get_url:
+    url: https://github.com/XTLS/Xray-rules-dat/releases/latest/download/geoip-full.dat
+    dest: /opt/xray/geoip.dat
+    force: yes
+    mode: '0600'
+    owner: root
+    group: root
+    timeout: 120
+  register: xray_geoip_download
+  until: xray_geoip_download is succeeded
+  retries: 3
+  delay: 10
+  notify: restart xray
+
 - name: Install systemd service
   copy:
     content: |
@@ -128,3 +143,9 @@
     group: root
     force: yes
   notify: restart xray
+
+- name: Validate Xray configuration
+  command: /opt/xray/xray run -test -c /opt/xray/config.json
+  args:
+    chdir: /opt/xray
+  changed_when: false
