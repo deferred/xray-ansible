@@ -33,27 +33,24 @@
 - name: Download Xray
   get_url:
     url: "https://github.com/XTLS/Xray-core/releases/download/{{ xray_version }}/{{ xray_asset }}"
-    dest: /tmp/{{ xray_asset }}
+    dest: /opt/xray/{{ xray_asset }}
+    force: yes
     mode: '0600'
     timeout: 120
   register: xray_download
   until: xray_download is succeeded
   retries: 3
   delay: 10
+  notify: restart xray
 
 - name: Extract Xray
   unarchive:
-    src: /tmp/{{ xray_asset }}
+    src: /opt/xray/{{ xray_asset }}
     dest: /opt/xray
     remote_src: yes
     owner: root
     group: root
     mode: '0700'
-
-- name: Remove zip file
-  file:
-    path: /tmp/{{ xray_asset }}
-    state: absent
 
 - name: Make Xray executable
   file:
